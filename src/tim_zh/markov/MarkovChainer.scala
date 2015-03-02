@@ -1,5 +1,6 @@
 package tim_zh.markov
 
+import scala.annotation.tailrec
 import scala.io.Source
 import scala.util.Random
 
@@ -40,11 +41,12 @@ object MarkovChainer extends App {
             )
         )
 
-  def buildRandomString(key: String, steps: Int, map: Map[String, List[String]]): String =
+  @tailrec
+  def buildRandomString(key: String, steps: Int, map: Map[String, List[String]], result: String = ""): String =
     if (steps == 0 || !map.contains(key))
-      key
+      result + key
     else
-      key + " " + buildRandomString(map(key)(Random.nextInt(map(key).size)), steps - 1, map)
+      buildRandomString(map(key)(Random.nextInt(map(key).size)), steps - 1, map, key + " " + result)
 
   def test(filename: String, steps: Int) {
     val map = buildMapFromFile(filename)
