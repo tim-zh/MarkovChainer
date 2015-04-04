@@ -9,37 +9,38 @@ object MarkovChainer extends App {
 
   def buildMapFromString(str: String) =
     str.
-        split("[.!?]+").view.
-        map(
-          _.replaceAll("(\\r|\\n|[^\\wа-яА-Я ])+", " ").
-              toLowerCase.
-              split(" +").
-              iterator.
-              sliding(4).
-              filter(
-                _.size >= 4
-              ).
-              foldLeft(Map[String, List[String]]())(
-                (resultMap, slidingSeq) => {
-                  val key = slidingSeq(0) + " " + slidingSeq(1)
-                  val value = slidingSeq(2) + " " + slidingSeq(3)
-                  if (resultMap.contains(key))
-                    resultMap + (key -> (value :: resultMap(key)))
-                  else
-                    resultMap + (key -> List(value))
-                }
-              )
-        ).
-        foldLeft(Map[String, List[String]]())(
-          (resultMap, sentenceMap) =>
-            sentenceMap.foldLeft(resultMap)(
-              (map, entry) =>
-                if (map.contains(entry._1))
-                  map + (entry._1 -> (entry._2 ::: map(entry._1)))
+      split("[.!?]+").view.
+      map(
+        _.
+          replaceAll("(\\r|\\n|[^\\wа-яА-Я ])+", " ").
+          toLowerCase.
+          split(" +").
+          iterator.
+          sliding(4).
+          filter(
+            _.size >= 4
+          ).
+          foldLeft(Map[String, List[String]]())(
+            (resultMap, slidingSeq) =>
+              ((key: String, value: String) =>
+                if (resultMap.contains(key))
+                  resultMap + (key -> (value :: resultMap(key)))
                 else
-                  map + entry
-            )
-        )
+                  resultMap + (key -> List(value))
+                ).
+                apply(slidingSeq(0) + " " + slidingSeq(1), slidingSeq(2) + " " + slidingSeq(3))
+          )
+      ).
+      foldLeft(Map[String, List[String]]())(
+        (resultMap, sentenceMap) =>
+          sentenceMap.foldLeft(resultMap)(
+            (map, entry) =>
+              if (map.contains(entry._1))
+                map + (entry._1 -> (entry._2 ::: map(entry._1)))
+              else
+                map + entry
+          )
+      )
 
   @tailrec
   def buildRandomString(key: String, steps: Int, map: Map[String, List[String]], result: String = ""): String =
